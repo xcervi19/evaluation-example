@@ -1,6 +1,6 @@
 '''
 Task:
-Create module (class) the Evaluation() as service for provide fitnesses for models and strategy evaluation.
+Create module (class) the Evaluator() as service for provide fitnesses for models and strategy evaluation.
 First iter is focused on evaluate static positions, it means that all positions have the same duration same TP and SL.
 first Iter:
 For providing fitness is needed: Mean profit per hour (not per position because we need comparition across batch of strategies on the same time interval)

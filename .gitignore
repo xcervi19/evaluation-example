@@ -1,0 +1,15 @@
+config.txt
+/__pycache__
+/.vscode
+/.idea
+/.DS_Store
+/data
+/strategies-sell
+/minmax
+/minmax-sell
+/strategies-debug
+/debug
+/trader-debug
+/strategies-sell-debug
+/strategies
+config.py
