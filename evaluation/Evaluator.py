@@ -2,21 +2,7 @@ import numpy as np
 import pandas as pd
 from numpy.lib.stride_tricks import sliding_window_view
 
-
-def get_high(high_diff, param):
-    where = np.where(high_diff > param)[0]
-    if where.shape[0] != 0:
-        return where[0]
-    else:
-        return high_diff.shape[0] - 1
-
-def get_low(low_diff, param):
-    where = np.where(-low_diff > param)[0]
-    if where.shape[0] != 0:
-        return where[0]
-    else:
-        return low_diff.shape[0] - 1
-
+from operations import get_high, get_low
 def get_eval_fces(type, position_params):
     if type == 'long':
         return (lambda high_diff: get_high(high_diff, position_params['tp']),
