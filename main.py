@@ -5,7 +5,6 @@ import pandas as pd
 import config as c
 from evaluation.Evaluator import Evaluator
 
-
 def main(argv):
     try:
         opts, args = getopt.getopt(argv, "o:", ["operation="])

@@ -4,8 +4,6 @@ import numpy as np
 
 import config as c
 from evaluation.operations import get_high, get_low
-
-
 class MainTest(unittest.TestCase):
     def setUp(self):
         self.values = np.array([0, 20, 30, 150, 30, 70, 140, 201, 30, -30, -150, -300])
