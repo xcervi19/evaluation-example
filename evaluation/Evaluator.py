@@ -86,7 +86,9 @@ class Evaluator:
         return (wins/loss) if loss != 0 else sys.maxsize
 
     def get_line_slope(self, profits):
-        return (profits.iloc[0] - profits.iloc[-1])/(profits.index[0] - profits.index[-1])
+        cumsum_profits = np.cumsum(profits)
+        return (cumsum_profits.iloc[0] - cumsum_profits.iloc[-1])/(profits.index[0] - profits.index[-1])
+        # return (cumsum_profits.iloc[0] - cumsum_profits.iloc[-1])/(0 - profits.shape[0])
 
 
  
