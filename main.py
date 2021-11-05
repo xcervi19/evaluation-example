@@ -2,6 +2,7 @@
 import sys
 import getopt
 import pandas as pd
+import numpy as np
 import config as c
 from evaluation.Evaluator import Evaluator
 
@@ -23,7 +24,7 @@ def main(argv):
         profits = evaluator.get_positions_profits(positions.index[positions['bool'] == 1].tolist(), 'long')
         mean = evaluator.get_mean(profits)
         factor = evaluator.get_profit_factor(profits)
-        slope = evaluator.get_line_slope(profits)
+        slope = evaluator.get_line_slope(np.cumsum(profits), profits.index)
 
         print(mean)
         print(factor)
