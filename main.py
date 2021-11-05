@@ -19,6 +19,14 @@ def main(argv):
         pair_timeseries = pd.read_csv(c.PAIR_CSV, sep=',', header=0, usecols=c.PAIR_COLS)
         positions = pd.read_csv(c.POSITIONS_CSV, sep=',', header=0, usecols=c.POSITIONS_COLS)
 
-        Evaluator(pair_timeseries, c.POSITION_PARAMS)
+        evaluator = Evaluator(pair_timeseries, c.POSITION_PARAMS)
+        profits = evaluator.get_positions_profits(positions.index[positions['bool'] == 1].tolist(), 'short')
+        mean = evaluator.get_mean(profits)
+        factor = evaluator.get_profit_factor(profits)
+        slope = evaluator.get_line_slope(profits)
+
+        print(mean)
+        print(factor)
+        print(slope)
 if __name__ == "__main__":
     main(sys.argv[1:])

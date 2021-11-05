@@ -1,3 +1,5 @@
+import sys
+
 from typing_extensions import TypeAlias
 import numpy as np
 import pandas as pd
@@ -58,7 +60,6 @@ def add_profit_along_time(data_for_profit, position_params, position_type):
     tp_arr = np.apply_along_axis(lambda x: get_tp(x), 1, diffs_for_tp).reshape(diffs_for_tp.shape[0],1)
     sl_arr = np.apply_along_axis(lambda x: get_sl(x), 1, diffs_for_sl).reshape(diffs_for_sl.shape[0],1)
     return np.apply_along_axis(lambda x: get_profit(x, position_params), 1, np.concatenate([tp_arr, sl_arr, open_tail_diff], axis=1))
-
 class Evaluator:
     def __init__(self, pair_timeseries, position_params):
         observe = position_params['observe']
@@ -67,9 +68,25 @@ class Evaluator:
         open_to_high, open_to_low = get_diffs_from_windows(points, open_price, high_price_win, low_price_win)
         data_for_profit = (open_price, open_to_high, open_to_low, open_tail_price)
         self.pair_timeseries = pair_timeseries[:-(observe+1)]
-        self.pair_timeseries = self.pair_timeseries.assign(long_profit=add_profit_along_time(data_for_profit, position_params, 'long'))
-        self.pair_timeseries = self.pair_timeseries.assign(short_profit=add_profit_along_time(data_for_profit, position_params, 'short'))
+        self.pair_timeseries = self.pair_timeseries.assign(long=add_profit_along_time(data_for_profit, position_params, 'long'))
+        self.pair_timeseries = self.pair_timeseries.assign(short=add_profit_along_time(data_for_profit, position_params, 'short'))
         print(self.pair_timeseries)
-    def get_evaluation_values(requirements ):
+
+    # def get_evaluation_values(requirements):
+    def get_positions_profits(self, positions_indexies, position_type):
+        return self.pair_timeseries.loc[positions_indexies, position_type]
+
+    def get_mean(self, profits):
+        df_len = self.pair_timeseries.shape[0]
+        return profits.sum()/df_len
+
+    def get_profit_factor(self, profits):
+        wins = profits.loc[profits > 0].sum()
+        loss = abs(profits.loc[profits < 0].sum())
+        return (wins/loss) if loss != 0 else sys.maxsize
+
+    def get_line_slope(self, profits):
+        return (profits.iloc[0] - profits.iloc[-1])/(profits.index[0] - profits.index[-1])
+
 
  
