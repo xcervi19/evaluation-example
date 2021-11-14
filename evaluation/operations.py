@@ -13,3 +13,7 @@ def get_low(low_diff, param):
         return where[0]
     else:
         return low_diff.shape[0] - 1
+
+def getWindowSum(sr, WindowLn):
+    return sr.rolling(window=WindowLn).apply(
+        lambda x: x.sum(), raw=True)

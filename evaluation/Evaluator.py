@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from numpy.lib.stride_tricks import sliding_window_view
 
-from evaluation.operations import get_high, get_low
+from evaluation.operations import get_high, get_low, getWindowSum
 import matplotlib.pyplot as plt
 
 
@@ -87,7 +87,8 @@ class Evaluator:
 
     def get_line_slope(self, cumsum_profits, index):
         return (cumsum_profits.iloc[0] - cumsum_profits.iloc[-1])/(index[0] - index[-1])
-        # return (cumsum_profits.iloc[0] - cumsum_profits.iloc[-1])/(0 - profits.shape[0])
-
-
+    
+    def get_max_lost(self, profits):
+        windowSum = getWindowSum(profits, 4)
+        return windowSum.min()
  
