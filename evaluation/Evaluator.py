@@ -85,9 +85,16 @@ class Evaluator:
         loss = abs(profits.loc[profits < 0].sum())
         return (wins/loss) if loss != 0 else sys.maxsize
 
+    def get_line_rvalue(self, cumsum_profits, index, slope):
+        mean = cumsum_profits.sum()/index[-1]
+        line = index*slope + cumsum_profits.iloc[0]
+        ssreg = np.sum((cumsum_profits - mean)**2)
+        sstot = np.sum((cumsum_profits - line)**2)   
+        return ssreg / sstot
+
     def get_line_slope(self, cumsum_profits, index):
         return (cumsum_profits.iloc[0] - cumsum_profits.iloc[-1])/(index[0] - index[-1])
-    
+
     def get_max_lost(self, profits):
         windowSum = getWindowSum(profits, 4)
         return windowSum.min()
