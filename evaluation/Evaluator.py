@@ -9,6 +9,8 @@ from evaluation.operations import get_high, get_low, getWindowSum
 import matplotlib.pyplot as plt
 
 
+from scipy import stats
+
 def get_profit(x, position_params):
     if x[0] == x[1]:
         if x[2] > position_params['tp']:
@@ -86,14 +88,36 @@ class Evaluator:
         return (wins/loss) if loss != 0 else sys.maxsize
 
     def get_line_rvalue(self, cumsum_profits, index, slope):
-        mean = cumsum_profits.sum()/index[-1]
+
+        mean = cumsum_profits.sum()/(index[0] - index[-1])
         line = index*slope + cumsum_profits.iloc[0]
         ssreg = np.sum((cumsum_profits - mean)**2)
-        sstot = np.sum((cumsum_profits - line)**2)   
+        sstot = np.sum((cumsum_profits - line)**2)  
+
+        print('-------')
+        ser = pd.Series(index=np.arange(index[0], index[-1]))
+        serb = pd.Series(cumsum_profits, index=index)
+        ser.update(serb)
+        ser_filled_cumsum = ser.fillna(method='ffill')
+        ser_to_poits_line = np.arange(index[0], index[-1])*slope + cumsum_profits.iloc[0]
+        slopeb, intercept, r_value, p_value, std_err = stats.linregress(np.arange(index[0], index[-1]), ser_filled_cumsum)
+        ser_lingress = np.arange(index[0], index[-1])*slopeb + cumsum_profits.iloc[0]
+        print(slopeb)
+        print(slope)
+        print(r_value)
+
+        fig = plt.figure(figsize=(20, 8))
+        fig.tight_layout()
+        plt.subplots_adjust(wspace=0, hspace=0)
+        ax = fig.add_subplot(111)
+        ax.plot(np.arange(index[0], index[-1]), ser_filled_cumsum, alpha=0.5)
+        ax.plot(np.arange(index[0], index[-1]), ser_to_poits_line, alpha=0.5)
+        ax.plot(np.arange(index[0], index[-1]), ser_lingress, alpha=0.5)
+        plt.show()
         return ssreg / sstot
 
     def get_line_slope(self, cumsum_profits, index):
-        return (cumsum_profits.iloc[0] - cumsum_profits.iloc[-1])/(index[0] - index[-1])
+        return (cumsum_profits.iloc[-1] - cumsum_profits.iloc[0])/(index[-1] - index[0])
 
     def get_max_lost(self, profits):
         windowSum = getWindowSum(profits, 4)

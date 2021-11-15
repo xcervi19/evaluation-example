@@ -21,7 +21,7 @@ def main(argv):
         positions = pd.read_csv(c.POSITIONS_CSV, sep=',', header=0, usecols=c.POSITIONS_COLS)
 
         evaluator = Evaluator(pair_timeseries, c.POSITION_PARAMS)
-        profits = evaluator.get_positions_profits((positions.index[positions['bool'] == 1]).tolist(), 'long')
+        profits = evaluator.get_positions_profits((positions.index[positions['bool'] == 1]-10).tolist(), 'long')
         mean = evaluator.get_mean(profits)
         factor = evaluator.get_profit_factor(profits)
         slope = evaluator.get_line_slope(np.cumsum(profits), profits.index)
