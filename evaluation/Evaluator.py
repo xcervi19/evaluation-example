@@ -1,5 +1,5 @@
 import sys
-
+import math
 from typing_extensions import TypeAlias
 import numpy as np
 import pandas as pd
@@ -89,10 +89,10 @@ class Evaluator:
 
     def get_line_rvalue(self, cumsum_profits, index, slope):
 
-        mean = cumsum_profits.sum()/(index[0] - index[-1])
+        mean = cumsum_profits.mean()
         line = index*slope + cumsum_profits.iloc[0]
-        ssreg = np.sum((cumsum_profits - mean)**2)
-        sstot = np.sum((cumsum_profits - line)**2)  
+        ssres = np.sum((cumsum_profits - line)**2)
+        sstot = np.sum((cumsum_profits - mean)**2)  
 
         print('-------')
         ser = pd.Series(index=np.arange(index[0], index[-1]))
@@ -104,17 +104,18 @@ class Evaluator:
         ser_lingress = np.arange(index[0], index[-1])*slopeb + cumsum_profits.iloc[0]
         print(slopeb)
         print(slope)
-        print(r_value)
+        print(std_err)
+        print(math.sqrt(ssres/cumsum_profits.shape[0]))
 
-        fig = plt.figure(figsize=(20, 8))
-        fig.tight_layout()
-        plt.subplots_adjust(wspace=0, hspace=0)
-        ax = fig.add_subplot(111)
-        ax.plot(np.arange(index[0], index[-1]), ser_filled_cumsum, alpha=0.5)
-        ax.plot(np.arange(index[0], index[-1]), ser_to_poits_line, alpha=0.5)
-        ax.plot(np.arange(index[0], index[-1]), ser_lingress, alpha=0.5)
-        plt.show()
-        return ssreg / sstot
+        # fig = plt.figure(figsize=(20, 8))
+        # fig.tight_layout()
+        # plt.subplots_adjust(wspace=0, hspace=0)
+        # ax = fig.add_subplot(111)
+        # ax.plot(index, line, alpha=0.5)
+        # ax.plot(index, cumsum_profits, alpha=0.5)
+        # ax.axhline(mean, color='green', lw=2, alpha=0.7)
+        # plt.show()
+        return 1 - (ssres / sstot)
 
     def get_line_slope(self, cumsum_profits, index):
         return (cumsum_profits.iloc[-1] - cumsum_profits.iloc[0])/(index[-1] - index[0])
