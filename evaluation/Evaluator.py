@@ -61,7 +61,8 @@ def add_profit_along_time(data_for_profit, position_params, position_type):
     diffs_for_tp, diffs_for_sl = get_correct_diffs(open_to_high, open_to_low)
     tp_arr = np.apply_along_axis(lambda x: get_tp(x), 1, diffs_for_tp).reshape(diffs_for_tp.shape[0],1)
     sl_arr = np.apply_along_axis(lambda x: get_sl(x), 1, diffs_for_sl).reshape(diffs_for_sl.shape[0],1)
-    return np.apply_along_axis(lambda x: get_profit(x, position_params), 1, np.concatenate([tp_arr, sl_arr, open_tail_diff], axis=1))
+    return np.apply_along_axis(lambda x: get_profit(x, position_params), 1, np.concatenate([tp_arr, sl_arr, open_tail_diff], axis=1)), tp_arr, sl_arr
+
 class Evaluator:
     def __init__(self, pair_timeseries, position_params):
         observe = position_params['observe']
@@ -69,12 +70,18 @@ class Evaluator:
         high_price_win, low_price_win, open_price, open_tail_price = get_timeseries_product(pair_timeseries, observe)
         open_to_high, open_to_low = get_diffs_from_windows(points, open_price, high_price_win, low_price_win)
         data_for_profit = (open_price, open_to_high, open_to_low, open_tail_price)
+        long_profits, long_tps, long_sls = add_profit_along_time(data_for_profit, position_params, 'long')
+        short_profits, short_tps, short_sls = add_profit_along_time(data_for_profit, position_params, 'short')
         self.pair_timeseries = pair_timeseries[:-(observe+1)]
-        self.pair_timeseries = self.pair_timeseries.assign(long=add_profit_along_time(data_for_profit, position_params, 'long'))
-        self.pair_timeseries = self.pair_timeseries.assign(short=add_profit_along_time(data_for_profit, position_params, 'short'))
-        print(self.pair_timeseries)
 
-    # def get_evaluation_values(requirements):
+        self.pair_timeseries = self.pair_timeseries.assign(long=long_profits)
+        self.pair_timeseries = self.pair_timeseries.assign(long_tps=long_tps)
+        self.pair_timeseries = self.pair_timeseries.assign(long_sls=long_sls)
+
+        self.pair_timeseries = self.pair_timeseries.assign(short=short_profits)
+        self.pair_timeseries = self.pair_timeseries.assign(short_tps=short_tps)
+        self.pair_timeseries = self.pair_timeseries.assign(short_sls=short_sls)
+
     def get_positions_profits(self, positions_indexies, position_type):
         return self.pair_timeseries.loc[positions_indexies, position_type]
 
@@ -88,34 +95,16 @@ class Evaluator:
         return (wins/loss) if loss != 0 else sys.maxsize
 
     def get_line_rvalue(self, cumsum_profits, index, slope):
-
         mean = cumsum_profits.mean()
         line = index*slope + cumsum_profits.iloc[0]
         ssres = np.sum((cumsum_profits - line)**2)
-        sstot = np.sum((cumsum_profits - mean)**2)  
-
-        print('-------')
-        ser = pd.Series(index=np.arange(index[0], index[-1]))
-        serb = pd.Series(cumsum_profits, index=index)
-        ser.update(serb)
-        ser_filled_cumsum = ser.fillna(method='ffill')
-        ser_to_poits_line = np.arange(index[0], index[-1])*slope + cumsum_profits.iloc[0]
-        slopeb, intercept, r_value, p_value, std_err = stats.linregress(np.arange(index[0], index[-1]), ser_filled_cumsum)
-        ser_lingress = np.arange(index[0], index[-1])*slopeb + cumsum_profits.iloc[0]
-        print(slopeb)
-        print(slope)
-        print(std_err)
-        print(math.sqrt(ssres/cumsum_profits.shape[0]))
-
-        # fig = plt.figure(figsize=(20, 8))
-        # fig.tight_layout()
-        # plt.subplots_adjust(wspace=0, hspace=0)
-        # ax = fig.add_subplot(111)
-        # ax.plot(index, line, alpha=0.5)
-        # ax.plot(index, cumsum_profits, alpha=0.5)
-        # ax.axhline(mean, color='green', lw=2, alpha=0.7)
-        # plt.show()
+        sstot = np.sum((cumsum_profits - mean)**2)
         return 1 - (ssres / sstot)
+
+    def get_line_sq_error(self, cumsum_profits, index, slope):
+        line = index*slope + cumsum_profits.iloc[0]
+        ssres = np.sum((cumsum_profits - line)**2)
+        return math.sqrt(ssres/cumsum_profits.shape[0])
 
     def get_line_slope(self, cumsum_profits, index):
         return (cumsum_profits.iloc[-1] - cumsum_profits.iloc[0])/(index[-1] - index[0])
@@ -123,4 +112,9 @@ class Evaluator:
     def get_max_lost(self, profits):
         windowSum = getWindowSum(profits, 4)
         return windowSum.min()
- 
+
+    def get_positions_step_mean(self, positions_indexies):
+        return np.diff(positions_indexies).mean()
+
+    def get_positions_step_std(self, positions_indexies):
+        return np.diff(positions_indexies).std()

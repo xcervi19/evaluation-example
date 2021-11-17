@@ -21,17 +21,36 @@ def main(argv):
         positions = pd.read_csv(c.POSITIONS_CSV, sep=',', header=0, usecols=c.POSITIONS_COLS)
 
         evaluator = Evaluator(pair_timeseries, c.POSITION_PARAMS)
-        profits = evaluator.get_positions_profits((positions.index[positions['bool'] == 1]-10).tolist(), 'long')
+
+        positions_indexies = (positions.index[positions['bool'] == 1]+5).tolist()
+        profits = evaluator.get_positions_profits(positions_indexies, 'long')
         mean = evaluator.get_mean(profits)
         factor = evaluator.get_profit_factor(profits)
-        slope = evaluator.get_line_slope(np.cumsum(profits), profits.index)
         max_lost = evaluator.get_max_lost(profits)
+
+        slope = evaluator.get_line_slope(np.cumsum(profits), profits.index)
         rvalue = evaluator.get_line_rvalue(np.cumsum(profits), profits.index, slope)
-        print(np.sum(profits))
+        line_sq_error = evaluator.get_line_sq_error(np.cumsum(profits),profits.index, slope)
+
+        positions_step_mean = evaluator.get_positions_step_mean(positions_indexies)
+        positions_step_std = evaluator.get_positions_step_std(positions_indexies)
+
+        print('mean')
         print(mean)
+        print('factor')
         print(factor)
-        print(slope)
+        print('max_lost')
         print(max_lost)
+        print('slope')
+        print(slope)
+        print('rvalue')
         print(rvalue)
+        print('line_sq_error')
+        print(line_sq_error)
+        print('positions_step_mean')
+        print(positions_step_mean)
+        print('positions_step_std')
+        print(positions_step_std)
+
 if __name__ == "__main__":
     main(sys.argv[1:])
