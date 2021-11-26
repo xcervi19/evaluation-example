@@ -52,5 +52,9 @@ def main(argv):
         print('positions_step_std')
         print(positions_step_std)
 
+        positions_rows = evaluator.build_description_matrix(positions_indexies, 'long')
+        print(positions_rows)
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
